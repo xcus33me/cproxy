@@ -1,4 +1,4 @@
-name: build terminal app
+name: build ready-to-run archives
 on:
   workflow_dispatch:
   push:
@@ -17,25 +17,10 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - name: Test UI logic
-        run: go test ./...
-      - name: Build bundle
-        env:
-          GOOS: ${{ matrix.os }}
-          GOARCH: ${{ matrix.arch }}
-          CGO_ENABLED: '0'
-        run: |
-          package="cproxy-$GOOS-$GOARCH"
-          mkdir -p "dist/$package/bin"
-          suffix=''
-          if [ "$GOOS" = windows ]; then suffix='.exe'; fi
-          go build -trimpath -ldflags='-s -w' -o "dist/$package/bin/cproxy$suffix" ./cmd/cproxy
-          cp -r linux windows config docs README.md LICENSE cproxy cproxy.ps1 "dist/$package/"
-          cd dist
-          if [ "$GOOS" = windows ]; then zip -qr "$package.zip" "$package"; else tar -czf "$package.tar.gz" "$package"; fi
+      - run: go test ./...
+      - name: Build archive with pinned sing-box and licenses
+        run: go run ./cmd/bundle -os ${{ matrix.os }} -arch ${{ matrix.arch }}
       - uses: actions/upload-artifact@v4
         with:
           name: cproxy-${{ matrix.os }}-${{ matrix.arch }}
-          path: |
-            dist/*.zip
-            dist/*.tar.gz
+          path: dist/*
