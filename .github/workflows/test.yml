@@ -1,0 +1,37 @@
+name: tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq fish shellcheck
+      - name: Offline checks
+        run: ./tests/run.sh
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Go UI tests
+        run: go test ./...
+      - name: PowerShell 5.1 syntax and behavior
+        shell: powershell
+        run: |
+          ./tests/syntax.ps1
+          ./tests/windows-tests.ps1
+          ./tests/windows-host-key-tests.ps1
+          ./tests/windows-install-tests.ps1
+      - name: PowerShell 7 behavior
+        shell: pwsh
+        run: |
+          ./tests/windows-tests.ps1
+          ./tests/windows-host-key-tests.ps1

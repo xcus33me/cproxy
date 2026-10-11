@@ -1,0 +1,15 @@
+# Managed by cproxy. Installer writes absolute quoted paths from this template.
+[Unit]
+Description=Selective Proxy (loopback mixed -> pinned SSH)
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=@EXEC@
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

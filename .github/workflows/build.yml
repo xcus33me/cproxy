@@ -1,0 +1,41 @@
+name: build terminal app
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux, windows]
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Test UI logic
+        run: go test ./...
+      - name: Build bundle
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        run: |
+          package="cproxy-$GOOS-$GOARCH"
+          mkdir -p "dist/$package/bin"
+          suffix=''
+          if [ "$GOOS" = windows ]; then suffix='.exe'; fi
+          go build -trimpath -ldflags='-s -w' -o "dist/$package/bin/cproxy$suffix" ./cmd/cproxy
+          cp -r linux windows config docs README.md LICENSE cproxy cproxy.ps1 "dist/$package/"
+          cd dist
+          if [ "$GOOS" = windows ]; then zip -qr "$package.zip" "$package"; else tar -czf "$package.tar.gz" "$package"; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cproxy-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz

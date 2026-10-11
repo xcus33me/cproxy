@@ -1,0 +1,25 @@
+# Local connection details, credentials and generated state
+params.local.json
+*.local.json
+config.json
+settings.json
+*.key
+*.pem
+id_ed25519*
+id_rsa*
+known_hosts*
+*.log
+.env
+.env.*
+__pycache__/
+*.pyc
+.superpowers/
+.worktrees/
+.agents/
+.aws/
+.codex/
+.DS_Store
+.build/
+/bin/
+/dist/
+*.exe
